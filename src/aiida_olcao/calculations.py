@@ -145,5 +145,6 @@ class OlcaoCalculation(CalcJob):
         calcinfo.retrieve_list = unique_retrieve_list
         return calcinfo
 
+
 # Backward-compatible alias used by docs/examples
 DiffCalculation = OlcaoCalculation

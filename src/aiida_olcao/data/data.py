@@ -45,4 +45,4 @@ class OlcaoParameters(orm.Dict):
             # check here because users may subclass/mutate in odd ways.
             from aiida.common.exceptions import ValidationError
 
-            raise ValidationError('OlcaoParameters must contain a dictionary.')
+            raise ValidationError("OlcaoParameters must contain a dictionary.")

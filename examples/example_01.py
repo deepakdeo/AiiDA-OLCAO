@@ -22,9 +22,7 @@ def test_run(olcao_code):
     if not olcao_code:
         # get code
         computer = helpers.get_computer()
-        olcao_code = helpers.get_code(
-            entry_point="olcao", computer=computer
-        )
+        olcao_code = helpers.get_code(entry_point="olcao", computer=computer)
 
     # Prepare input parameters
     diff_parameters = DataFactory("olcao")

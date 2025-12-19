@@ -35,9 +35,7 @@ def _read_text_from_repository(repo, name: str) -> Tuple[str, int]:
 
 def _extract_total_energy(text: str) -> Optional[float]:
     """Extract TOTAL_ENERGY from output text if present."""
-    energy_re = re.compile(
-        r"\bTOTAL[\s_]+ENERGY\b\s*=\s*([-+]?\d+(?:\.\d+)?(?:[eE][-+]?\d+)?)"
-    )
+    energy_re = re.compile(r"\bTOTAL[\s_]+ENERGY\b\s*=\s*([-+]?\d+(?:\.\d+)?(?:[eE][-+]?\d+)?)")
     m = energy_re.search(text)
     if not m:
         return None
