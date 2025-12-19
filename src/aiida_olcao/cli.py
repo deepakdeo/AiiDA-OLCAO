@@ -6,11 +6,11 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import click
-
 from aiida.cmdline.utils.decorators import with_dbenv
 from aiida.orm import QueryBuilder, load_node
 
 from aiida_olcao.data import OlcaoParameters
+
 
 @click.group("olcao")
 def cmd_root():

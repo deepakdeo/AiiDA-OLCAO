@@ -1,8 +1,8 @@
 """Tests for command line interface."""
 
 from aiida.plugins import DataFactory
-from click.testing import CliRunner
 from aiida_olcao.cli import export, list_
+from click.testing import CliRunner
 
 
 # pylint: disable=attribute-defined-outside-init
