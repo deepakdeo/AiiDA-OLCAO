@@ -13,4 +13,4 @@ def clear_database_auto(clear_database):  # pylint: disable=unused-argument
 @pytest.fixture(scope="function")
 def olcao_code(aiida_local_code_factory):
     """Get a olcao code."""
-    return aiida_local_code_factory(executable="diff", entry_point="olcao")
+    return aiida_local_code_factory(executable="/bin/cat", entry_point="olcao")

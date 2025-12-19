@@ -1,4 +1,4 @@
-"""Parser for the ``aiida-olcao`` CalcJob.
+"""Parser for the ``aiida-olcao`` ``aiida.engine.CalcJob``.
 
 Robust minimal parser that:
 - locates the main stdout output file (from node option `output_filename`)
@@ -35,9 +35,7 @@ def _read_text_from_repository(repo, name: str) -> Tuple[str, int]:
 
 def _extract_total_energy(text: str) -> Optional[float]:
     """Extract TOTAL_ENERGY from output text if present."""
-    energy_re = re.compile(
-        r"\bTOTAL[\s_]+ENERGY\b\s*=\s*([-+]?\d+(?:\.\d+)?(?:[eE][-+]?\d+)?)"
-    )
+    energy_re = re.compile(r"\bTOTAL[\s_]+ENERGY\b\s*=\s*([-+]?\d+(?:\.\d+)?(?:[eE][-+]?\d+)?)")
     m = energy_re.search(text)
     if not m:
         return None
@@ -59,9 +57,13 @@ def _error_excerpt(text: str, needle: str = "error", window: int = 120) -> Optio
 
 
 class OlcaoParser(Parser):
-    """Parser for :class:`~aiida_olcao.calculations.OlcaoCalculation`."""
+    """Parser for :class:`~aiida_olcao.calculations.OlcaoCalculation`.
+
+    Subclass of ``aiida.parsers.Parser`` for ``aiida.orm.CalcJobNode`` nodes.
+    """
 
     def parse(self, **kwargs: Any) -> ExitCode | None:
+        """Parse retrieved outputs and return an ``aiida.engine.ExitCode`` or ``None``."""
         # 1) Retrieved folder must exist
         try:
             retrieved = self.retrieved

@@ -8,7 +8,7 @@ Storing these parameters as an AiiDA data node makes them:
 - easy to reuse across calculations/workflows
 
 This module currently defines :class:`~aiida_olcao.data.OlcaoParameters`, a thin
-wrapper around :class:`aiida.orm.Dict`.
+wrapper around ``aiida.orm.nodes.data.dict.Dict``.
 
 As we learn the OLCAO input format better, we can add more validation here
 (e.g. enforcing allowed keys/values, normalising units, etc.).
@@ -34,7 +34,7 @@ class OlcaoParameters(orm.Dict):
 
         Raises
         ------
-        :class:`aiida.common.exceptions.ValidationError`
+        ``aiida.common.exceptions.ValidationError``
             If the stored data is not a dictionary.
         """
         super().validate()
@@ -45,5 +45,4 @@ class OlcaoParameters(orm.Dict):
             # check here because users may subclass/mutate in odd ways.
             from aiida.common.exceptions import ValidationError
 
-            raise ValidationError('OlcaoParameters must contain a dictionary.')
-
+            raise ValidationError("OlcaoParameters must contain a dictionary.")

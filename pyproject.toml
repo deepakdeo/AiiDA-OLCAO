@@ -41,7 +41,7 @@ docs = [
 Source = "https://github.com/deepakdeo/aiida-olcao"
 
 [project.entry-points."aiida.data"]
-"olcao" = "aiida_olcao.data:OlcaoParameters"
+"olcao" = "aiida_olcao.data.data:OlcaoParameters"
 
 [project.entry-points."aiida.calculations"]
 "olcao" = "aiida_olcao.calculations:OlcaoCalculation"

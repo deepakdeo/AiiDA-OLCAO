@@ -17,22 +17,21 @@ def test_process(olcao_code):
     diff_parameters = DataFactory("olcao")
     parameters = diff_parameters({"ignore-case": True})
 
-    file1 = SinglefileData(file=os.path.join(TEST_DIR, "input_files", "file1.txt"))
-    file2 = SinglefileData(file=os.path.join(TEST_DIR, "input_files", "file2.txt"))
+    input_file = SinglefileData(file=os.path.join(TEST_DIR, "input_files", "file1.txt"))
 
     # set up calculation
     inputs = {
         "code": olcao_code,
         "parameters": parameters,
-        "file1": file1,
-        "file2": file2,
+        "input_file": input_file,
         "metadata": {
             "options": {"max_wallclock_seconds": 30},
         },
     }
 
     result = run(CalculationFactory("olcao"), **inputs)
-    computed_diff = result["olcao"].get_content()
+    output_parameters = result["output_parameters"].get_dict()
 
-    assert "content1" in computed_diff
-    assert "content2" in computed_diff
+    assert output_parameters["output_filename"] == "olcao.out"
+    assert output_parameters["stdout_nbytes"] > 0
+    assert output_parameters["stdout_nchars"] > 0

@@ -14,7 +14,7 @@ from .helpers import get_input_filename, get_output_filename
 
 
 class OlcaoCalculation(CalcJob):
-    """AiiDA CalcJob plugin to run the OLCAO code."""
+    """AiiDA ``aiida.engine.CalcJob`` plugin to run the OLCAO code."""
 
     @classmethod
     def define(cls, spec):
@@ -144,3 +144,7 @@ class OlcaoCalculation(CalcJob):
 
         calcinfo.retrieve_list = unique_retrieve_list
         return calcinfo
+
+
+# Backward-compatible alias used by docs/examples
+DiffCalculation = OlcaoCalculation

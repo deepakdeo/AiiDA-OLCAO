@@ -5,8 +5,8 @@ from __future__ import annotations
 from typing import Final
 
 # These filenames are used inside the calculation sandbox folder.
-DEFAULT_INPUT_FILENAME: Final[str] = 'olcao.in'
-DEFAULT_OUTPUT_FILENAME: Final[str] = 'olcao.out'
+DEFAULT_INPUT_FILENAME: Final[str] = "olcao.in"
+DEFAULT_OUTPUT_FILENAME: Final[str] = "olcao.out"
 
 
 def get_input_filename() -> str:
