@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 echo "OLCAO DUMMY RUN"
 echo "================"
 echo "Input was:"
