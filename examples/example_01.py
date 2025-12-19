@@ -1,55 +1,86 @@
 #!/usr/bin/env python
-"""Run a test calculation on localhost.
+"""Run a test calculation on localhost using ``dummy_olcao.sh``.
 
 Usage: ./example_01.py
 """
 
-from os import path
+from pathlib import Path
 
 import click
 from aiida import cmdline, engine
+from aiida.common import exceptions
+from aiida.orm import Computer, InstalledCode, SinglefileData, load_code, load_computer
 from aiida.plugins import CalculationFactory, DataFactory
-from aiida_olcao import helpers
 
-INPUT_DIR = path.join(path.dirname(path.realpath(__file__)), "input_files")
+REPO_ROOT = Path(__file__).resolve().parents[1]
+EXAMPLE_DIR = Path(__file__).resolve().parent
+if not (EXAMPLE_DIR / "input_files").is_dir():
+    EXAMPLE_DIR = Path.cwd() / "examples"
+INPUT_DIR = EXAMPLE_DIR / "input_files"
+DUMMY_EXE = REPO_ROOT / "dummy_olcao.sh"
+
+
+def get_or_create_local_computer(label: str = "localhost") -> Computer:
+    """Return a local computer, creating it if needed."""
+    try:
+        return load_computer(label)
+    except exceptions.NotExistent:
+        workdir = Path.home() / "aiida_workdir"
+        workdir.mkdir(parents=True, exist_ok=True)
+        computer = Computer(
+            label=label,
+            hostname="localhost",
+            transport_type="core.local",
+            scheduler_type="core.direct",
+            workdir=str(workdir),
+        )
+        computer.store()
+        try:
+            computer.configure()
+        except Exception:
+            pass
+        return computer
+
+
+def get_or_create_code(label: str = "olcao-dummy", computer_label: str = "localhost") -> InstalledCode:
+    """Return a local code for the dummy OLCAO script, creating it if needed."""
+    full_label = f"{label}@{computer_label}"
+    try:
+        return load_code(full_label)
+    except exceptions.NotExistent:
+        computer = get_or_create_local_computer(computer_label)
+        code = InstalledCode(
+            label=label,
+            computer=computer,
+            filepath_executable=str(DUMMY_EXE),
+            default_calc_job_plugin="olcao",
+        )
+        code.store()
+        return code
 
 
 def test_run(olcao_code):
-    """Run a calculation on the localhost computer.
-
-    Uses test helpers to create AiiDA Code on the fly.
-    """
+    """Run a calculation on the localhost computer."""
     if not olcao_code:
-        # get code
-        computer = helpers.get_computer()
-        olcao_code = helpers.get_code(entry_point="olcao", computer=computer)
+        olcao_code = get_or_create_code()
 
-    # Prepare input parameters
-    diff_parameters = DataFactory("olcao")
-    parameters = diff_parameters({"ignore-case": True})
+    parameters = DataFactory("olcao")({"dummy": True})
+    input_file = SinglefileData(file=str(INPUT_DIR / "file1.txt"))
 
-    singlefile_data = DataFactory("core.singlefile")
-    file1 = singlefile_data(file=path.join(INPUT_DIR, "file1.txt"))
-    file2 = singlefile_data(file=path.join(INPUT_DIR, "file2.txt"))
-
-    # set up calculation
     inputs = {
         "code": olcao_code,
         "parameters": parameters,
-        "file1": file1,
-        "file2": file2,
+        "input_file": input_file,
         "metadata": {
-            "description": "Test job submission with the aiida_olcao plugin",
+            "description": "Hello-world run using the dummy OLCAO executable",
+            "options": {"max_wallclock_seconds": 30},
         },
     }
 
-    # Note: in order to submit your calculation to the aiida daemon, do:
-    # from aiida.engine import submit
-    # future = submit(CalculationFactory('olcao'), **inputs)
     result = engine.run(CalculationFactory("olcao"), **inputs)
-
-    computed_diff = result["olcao"].get_content()
-    print(f"Computed diff between files: \n{computed_diff}")
+    output_parameters = result["output_parameters"].get_dict()
+    print("output_parameters:")
+    print(output_parameters)
 
 
 @click.command()
@@ -58,9 +89,9 @@ def test_run(olcao_code):
 def cli(code):
     """Run example.
 
-    Example usage: $ ./example_01.py --code diff@localhost
+    Example usage: $ ./example_01.py --code olcao-dummy@localhost
 
-    Alternative (creates diff@localhost-test code): $ ./example_01.py
+    Alternative (creates olcao-dummy@localhost code): $ ./example_01.py
 
     Help: $ ./example_01.py --help
     """
