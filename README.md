@@ -17,12 +17,12 @@ intended to help developers get started with their AiiDA plugins.
   * [`ci.yml`](.github/workflows/ci.yml): runs tests, checks test coverage and builds documentation at every new commit
   * [`publish-on-pypi.yml`](.github/workflows/publish-on-pypi.yml): automatically deploy git tags to PyPI - just generate a [PyPI API token](https://pypi.org/help/#apitoken) for your PyPI account and add it to the `pypi_token` secret of your github repository
 * [`aiida_olcao/`](aiida_olcao/): The main source code of the plugin package
-  * [`data/`](aiida_olcao/data/): A new `DiffParameters` data class, used as input to the `DiffCalculation` `CalcJob` class
-  * [`calculations.py`](aiida_olcao/calculations.py): A new `DiffCalculation` `CalcJob` class
-  * [`cli.py`](aiida_olcao/cli.py): Extensions of the `verdi data` command line interface for the `DiffParameters` class
-  * [`helpers.py`](aiida_olcao/helpers.py): Helpers for setting up an AiiDA code for `diff` automatically
-  * [`parsers.py`](aiida_olcao/parsers.py): A new `Parser` for the `DiffCalculation`
-* [`docs/`](docs/): A documentation template ready for publication on [Read the Docs](http://aiida-diff.readthedocs.io/en/latest/)
+  * [`data/`](aiida_olcao/data/): A new `OlcaoParameters` data class, used as input to the `OlcaoCalculation` `CalcJob` class
+  * [`calculations.py`](aiida_olcao/calculations.py): A new `OlcaoCalculation` `CalcJob` class
+  * [`cli.py`](aiida_olcao/cli.py): Extensions of the `verdi data` command line interface for the `OlcaoParameters` class
+  * [`helpers.py`](aiida_olcao/helpers.py): Helpers for setting up a local AiiDA code for `dummy_olcao.sh`
+  * [`parsers.py`](aiida_olcao/parsers.py): A new `Parser` for the `OlcaoCalculation`
+* [`docs/`](docs/): A documentation template ready for publication on [Read the Docs](https://aiida-olcao.readthedocs.io/en/latest/)
 * [`examples/`](examples/): An example of how to submit a calculation using this plugin
 * [`tests/`](tests/): Basic regression tests using the [pytest](https://docs.pytest.org/en/latest/) framework (submitting a calculation, ...). Install `pip install -e .[testing]` and run `pytest`.
 * [`.gitignore`](.gitignore): Telling git which files to ignore
@@ -33,42 +33,29 @@ intended to help developers get started with their AiiDA plugins.
 * [`conftest.py`](conftest.py): Configuration of fixtures for [pytest](https://docs.pytest.org/en/latest/)
 * [`pyproject.toml`](setup.json): Python package metadata for registration on [PyPI](https://pypi.org/) and the [AiiDA plugin registry](https://aiidateam.github.io/aiida-registry/) (including entry points)
 
-See also the following video sequences from the 2019-05 AiiDA tutorial:
-
- * [run aiida-diff example calculation](https://www.youtube.com/watch?v=2CxiuiA1uVs&t=403s)
- * [aiida-diff CalcJob plugin](https://www.youtube.com/watch?v=2CxiuiA1uVs&t=685s)
- * [aiida-diff Parser plugin](https://www.youtube.com/watch?v=2CxiuiA1uVs&t=936s)
- * [aiida-diff computer/code helpers](https://www.youtube.com/watch?v=2CxiuiA1uVs&t=1238s)
- * [aiida-diff input data (with validation)](https://www.youtube.com/watch?v=2CxiuiA1uVs&t=1353s)
- * [aiida-diff cli](https://www.youtube.com/watch?v=2CxiuiA1uVs&t=1621s)
- * [aiida-diff tests](https://www.youtube.com/watch?v=2CxiuiA1uVs&t=1931s)
- * [Adding your plugin to the registry](https://www.youtube.com/watch?v=760O2lDB-TM&t=112s)
- * [pre-commit hooks](https://www.youtube.com/watch?v=760O2lDB-TM&t=333s)
-
-For more information, see the [developer guide](https://aiida-diff.readthedocs.io/en/latest/developer_guide) of your plugin.
+For more information, see the [developer guide](https://aiida-olcao.readthedocs.io/en/latest/developer_guide) of your plugin.
 
 
 ## Features
 
- * Add input files using `SinglefileData`:
+ * Provide the OLCAO input file using `SinglefileData`:
    ```python
    SinglefileData = DataFactory('core.singlefile')
-   inputs['file1'] = SinglefileData(file='/path/to/file1')
-   inputs['file2'] = SinglefileData(file='/path/to/file2')
+   inputs['input_file'] = SinglefileData(file='/path/to/olcao.in')
    ```
 
- * Specify command line options via a python dictionary and `DiffParameters`:
+ * Specify optional parameters via `OlcaoParameters`:
    ```python
-   d = { 'ignore-case': True }
-   DiffParameters = DataFactory('olcao')
-   inputs['parameters'] = DiffParameters(dict=d)
+   params = { 'dummy': True }
+   OlcaoParameters = DataFactory('olcao')
+   inputs['parameters'] = OlcaoParameters(dict=params)
    ```
 
- * `DiffParameters` dictionaries are validated using [voluptuous](https://github.com/alecthomas/voluptuous).
+ * `OlcaoParameters` dictionaries are validated using [voluptuous](https://github.com/alecthomas/voluptuous).
    Find out about supported options:
    ```python
-   DiffParameters = DataFactory('olcao')
-   print(DiffParameters.schema.schema)
+   OlcaoParameters = DataFactory('olcao')
+   print(OlcaoParameters.schema.schema)
    ```
 
 ## Installation
@@ -88,28 +75,30 @@ A quick demo of how to submit a calculation:
 ```shell
 verdi daemon start     # make sure the daemon is running
 cd examples
-./example_01.py        # run test calculation
+verdi run examples/example_01.py --code olcao-dummy@localhost
 verdi process list -a  # check record of calculation
+
+If you omit `--code`, the example will create `olcao-dummy@localhost` for you.
 ```
 
 The plugin also includes verdi commands to inspect its data types:
 ```shell
 verdi data olcao list
-verdi data olcao export <PK>
+verdi data olcao export <PK>  # prints parameters for an OlcaoParameters node
 ```
 
 ## Development
 
 ```shell
-git clone https://github.com/deepakdeo/aiida-olcao .
-cd aiida-olcao
+git clone https://github.com/deepakdeo/AiiDA-OLCAO.git
+cd AiiDA-OLCAO
 pip install --upgrade pip
 pip install -e .[pre-commit,testing]  # install extra dependencies
 pre-commit install  # install pre-commit hooks
 pytest -v  # discover and run all tests
 ```
 
-See the [developer guide](http://AiiDA-OLCAO.readthedocs.io/en/latest/developer_guide/index.html) for more information.
+See the [developer guide](https://aiida-olcao.readthedocs.io/en/latest/developer_guide/index.html) for more information.
 
 ## License
 
@@ -119,11 +108,11 @@ MIT
 dd9wn@umkc.edu
 
 
-[ci-badge]: https://github.com/deepakdeo/aiida-olcao/workflows/ci/badge.svg?branch=master
-[ci-link]: https://github.com/deepakdeo/aiida-olcao/actions
-[cov-badge]: https://coveralls.io/repos/github/deepakdeo/aiida-olcao/badge.svg?branch=master
-[cov-link]: https://coveralls.io/github/deepakdeo/aiida-olcao?branch=master
-[docs-badge]: https://readthedocs.org/projects/AiiDA-OLCAO/badge
-[docs-link]: http://AiiDA-OLCAO.readthedocs.io/
+[ci-badge]: https://github.com/deepakdeo/AiiDA-OLCAO/actions/workflows/ci.yml/badge.svg?branch=main
+[ci-link]: https://github.com/deepakdeo/AiiDA-OLCAO/actions/workflows/ci.yml
+[cov-badge]: https://coveralls.io/repos/github/deepakdeo/AiiDA-OLCAO/badge.svg?branch=main
+[cov-link]: https://coveralls.io/github/deepakdeo/AiiDA-OLCAO?branch=main
+[docs-badge]: https://readthedocs.org/projects/aiida-olcao/badge
+[docs-link]: https://aiida-olcao.readthedocs.io/
 [pypi-badge]: https://badge.fury.io/py/AiiDA-OLCAO.svg
 [pypi-link]: https://badge.fury.io/py/AiiDA-OLCAO
