@@ -12,13 +12,11 @@ from __future__ import annotations
 
 import fnmatch
 import re
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from aiida import orm
+from aiida.engine import ExitCode
 from aiida.parsers.parser import Parser
-
-if TYPE_CHECKING:
-    from aiida.engine import ExitCode
 
 
 def _read_file_content(repo, filename: str) -> tuple[str, int]:
@@ -45,7 +43,7 @@ def _read_file_content(repo, filename: str) -> tuple[str, int]:
 
 
 def _find_output_files(retrieved_names: list[str]) -> list[str]:
-    """Find OLCAO output files matching gs_*-*.out pattern.
+    """Find OLCAO output files matching ``gs_*-*.out`` pattern.
 
     Parameters
     ----------
@@ -194,7 +192,7 @@ class OlcaoParser(Parser):
     - Band gap (if available)
     """
 
-    def parse(self, **kwargs: Any) -> "ExitCode | None":
+    def parse(self, **kwargs: Any) -> ExitCode | None:
         """Parse the retrieved files from an OLCAO calculation.
 
         Returns

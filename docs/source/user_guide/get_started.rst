@@ -38,5 +38,5 @@ If you have already set up your own aiida_olcao code using
 Available calculations
 ++++++++++++++++++++++
 
-.. aiida-calcjob:: DiffCalculation
+.. aiida-calcjob:: OlcaoCalculation
     :module: aiida_olcao.calculations
