@@ -5,108 +5,285 @@
 
 # AiiDA-OLCAO
 
-AiiDA plugin to run and manage OLCAO calculations on HPC clusters (e.g. Hellbender at University of Missouri system)
+An [AiiDA](https://www.aiida.net/) plugin for running [OLCAO](https://github.com/UMKC-CPG/olcao) (Orthogonalized Linear Combination of Atomic Orbitals) calculations on HPC clusters.
 
-This plugin is the default output of the
-[AiiDA plugin cutter](https://github.com/aiidateam/aiida-plugin-cutter),
-intended to help developers get started with their AiiDA plugins.
+## What is OLCAO?
 
-## Repository contents
+OLCAO is a density functional theory (DFT) code for electronic structure calculations developed at the University of Missouri-Kansas City. It specializes in:
 
-* [`.github/`](.github/): [Github Actions](https://github.com/features/actions) configuration
-  * [`ci.yml`](.github/workflows/ci.yml): runs tests, checks test coverage and builds documentation at every new commit
-  * [`publish-on-pypi.yml`](.github/workflows/publish-on-pypi.yml): automatically deploy git tags to PyPI - just generate a [PyPI API token](https://pypi.org/help/#apitoken) for your PyPI account and add it to the `pypi_token` secret of your github repository
-* [`aiida_olcao/`](aiida_olcao/): The main source code of the plugin package
-  * [`data/`](aiida_olcao/data/): A new `OlcaoParameters` data class, used as input to the `OlcaoCalculation` `CalcJob` class
-  * [`calculations.py`](aiida_olcao/calculations.py): A new `OlcaoCalculation` `CalcJob` class
-  * [`cli.py`](aiida_olcao/cli.py): Extensions of the `verdi data` command line interface for the `OlcaoParameters` class
-  * [`helpers.py`](aiida_olcao/helpers.py): Helpers for setting up a local AiiDA code for `dummy_olcao.sh`
-  * [`parsers.py`](aiida_olcao/parsers.py): A new `Parser` for the `OlcaoCalculation`
-* [`docs/`](docs/): A documentation template ready for publication on [Read the Docs](https://aiida-olcao.readthedocs.io/en/latest/)
-* [`examples/`](examples/): An example of how to submit a calculation using this plugin
-* [`tests/`](tests/): Basic regression tests using the [pytest](https://docs.pytest.org/en/latest/) framework (submitting a calculation, ...). Install `pip install -e .[testing]` and run `pytest`.
-* [`.gitignore`](.gitignore): Telling git which files to ignore
-* [`.pre-commit-config.yaml`](.pre-commit-config.yaml): Configuration of [pre-commit hooks](https://pre-commit.com/) that sanitize coding style and check for syntax errors. Enable via `pip install -e .[pre-commit] && pre-commit install`
-* [`.readthedocs.yml`](.readthedocs.yml): Configuration of documentation build for [Read the Docs](https://readthedocs.org/)
-* [`LICENSE`](LICENSE): License for your plugin
-* [`README.md`](README.md): This file
-* [`conftest.py`](conftest.py): Configuration of fixtures for [pytest](https://docs.pytest.org/en/latest/)
-* [`pyproject.toml`](setup.json): Python package metadata for registration on [PyPI](https://pypi.org/) and the [AiiDA plugin registry](https://aiidateam.github.io/aiida-registry/) (including entry points)
+- Electronic structure calculations (SCF)
+- Density of states (DOS)
+- Band structure (SYBD)
+- Bond order analysis (BOND)
+- Optical properties (OPTC)
+- X-ray absorption spectroscopy / XANES (PACS)
 
-For more information, see the [developer guide](https://aiida-olcao.readthedocs.io/en/latest/developer_guide) of your plugin.
+## What does this plugin do?
 
+AiiDA-OLCAO integrates OLCAO into the AiiDA workflow management framework, providing:
 
-## Features
-
- * Provide the OLCAO input file using `SinglefileData`:
-   ```python
-   SinglefileData = DataFactory('core.singlefile')
-   inputs['input_file'] = SinglefileData(file='/path/to/olcao.in')
-   ```
-
- * Specify optional parameters via `OlcaoParameters`:
-   ```python
-   params = { 'dummy': True }
-   OlcaoParameters = DataFactory('olcao')
-   inputs['parameters'] = OlcaoParameters(dict=params)
-   ```
-
- * `OlcaoParameters` dictionaries are validated using [voluptuous](https://github.com/alecthomas/voluptuous).
-   Find out about supported options:
-   ```python
-   OlcaoParameters = DataFactory('olcao')
-   print(OlcaoParameters.schema.schema)
-   ```
+- **Automated job submission** to HPC clusters (SLURM, PBS, etc.)
+- **Full data provenance** tracking for reproducible research
+- **Input validation** for OLCAO parameters
+- **Output parsing** of energies, Fermi levels, convergence status, and more
+- **High-throughput screening** capabilities for materials discovery
 
 ## Installation
 
-```shell
-pip install AiiDA-OLCAO
-verdi quicksetup  # better to set up a new profile
-verdi plugin list aiida.calculations  # should now show your calclulation plugins
+```bash
+pip install aiida-olcao
+
+# Set up AiiDA (if not already configured)
+verdi quicksetup
+
+# Verify the plugin is installed
+verdi plugin list aiida.calculations  # Should show 'olcao'
 ```
 
+For development installation:
 
-## Usage
-
-Here goes a complete example of how to submit a test calculation using this plugin.
-
-A quick demo of how to submit a calculation:
-```shell
-verdi daemon start     # make sure the daemon is running
-cd examples
-verdi run examples/example_01.py --code olcao-dummy@localhost
-verdi process list -a  # check record of calculation
-
-If you omit `--code`, the example will create `olcao-dummy@localhost` for you.
+```bash
+git clone https://github.com/deepakdeo/AiiDA-OLCAO.git
+cd AiiDA-OLCAO
+pip install -e .[pre-commit,testing]
+pre-commit install
 ```
 
-The plugin also includes verdi commands to inspect its data types:
-```shell
-verdi data olcao list
-verdi data olcao export <PK>  # prints parameters for an OlcaoParameters node
+## Quick Start Guide
+
+### 1. Configure Your HPC Computer
+
+First, set up your remote computer in AiiDA. Example for Hellbender (University of Missouri):
+
+```bash
+verdi computer setup \
+    --label hellbender \
+    --hostname hellbender.rnet.missouri.edu \
+    --transport core.ssh \
+    --scheduler core.slurm \
+    --work-dir /home/{username}/scratch/aiida_work \
+    --mpiprocs-per-machine 1
+
+verdi computer configure core.ssh hellbender \
+    --username {your_username} \
+    --key-filename ~/.ssh/id_ed25519
+
+# Test the connection
+verdi computer test hellbender
 ```
+
+### 2. Register the OLCAO Code
+
+```bash
+verdi code create core.code.installed \
+    --label olcao \
+    --computer hellbender \
+    --filepath-executable /path/to/olcao/bin/uolcao \
+    --default-calc-job-plugin olcao
+```
+
+### 3. Submit a Calculation
+
+Create a Python script (or use `examples/submit_diamond_dos.py`):
+
+```python
+from aiida import load_profile
+from aiida.engine import submit
+from aiida.orm import SinglefileData, load_code
+from aiida.plugins import CalculationFactory, DataFactory
+
+load_profile()
+
+# Load plugin classes
+OlcaoCalculation = CalculationFactory('olcao')
+OlcaoParameters = DataFactory('olcao')
+
+# Create the calculation
+builder = OlcaoCalculation.get_builder()
+builder.code = load_code('olcao@hellbender')
+builder.skeleton = SinglefileData(file='/path/to/diamond.skl')
+builder.parameters = OlcaoParameters({
+    'kpoints': [5, 5, 5],
+    'calculation_type': 'dos',
+    'basis_scf': 'FB',
+    'basis_pscf': 'FB',
+    'edge': 'gs',
+})
+builder.metadata.options.resources = {'num_machines': 1}
+builder.metadata.options.max_wallclock_seconds = 3600
+
+# Submit
+calc = submit(builder)
+print(f'Submitted calculation: {calc.pk}')
+```
+
+Run it:
+
+```bash
+verdi daemon start  # Ensure daemon is running
+python submit_diamond_dos.py
+```
+
+### 4. Monitor and Check Results
+
+```bash
+# Watch calculation progress
+verdi process list -a
+
+# View detailed status
+verdi process show <PK>
+
+# View summary table of all OLCAO calculations
+verdi data olcao results
+
+# Example output:
+#     PK  Label             Type    Energy (Ha)     Status        Date
+# ------  ----------------  ------  --------------  ------------  ----------
+#     57  diamond-dos       dos     -45.768046      Finished      2026-01-08
+#     46  silicon.skl       scf     -31.234567      Finished      2026-01-07
+```
+
+### 5. View Parsed Output
+
+```bash
+# Get the output parameters PK from process show
+verdi data dict show <output_parameters_PK>
+
+# Example output:
+# {
+#     "total_energy": -45.768046,
+#     "total_energy_units": "Hartree",
+#     "fermi_energy": 0.234567,
+#     "fermi_energy_units": "Hartree",
+#     "num_atoms": 2,
+#     "num_electrons": 8.0,
+#     "num_iterations": 12,
+#     "converged": true,
+#     "band_gap": 5.47,
+#     "band_gap_units": "eV"
+# }
+```
+
+## CLI Commands
+
+The plugin provides several `verdi` commands:
+
+| Command | Description |
+|---------|-------------|
+| `verdi data olcao results` | Show summary table of all OLCAO calculations |
+| `verdi data olcao list` | List OlcaoParameters nodes |
+| `verdi data olcao export <PK>` | Export parameters from a node |
+
+### Results Command Options
+
+```bash
+verdi data olcao results --help
+
+Options:
+  --limit INTEGER    Maximum calculations to show (default: 20)
+  --past-days INTEGER  Only show calculations from last N days
+  --all-states       Include running/waiting calculations
+```
+
+## Supported Calculation Types
+
+| Type | Description | Output Files |
+|------|-------------|--------------|
+| `scf` | Self-consistent field (ground state) | `gs_scf-*.out` |
+| `dos` | Density of states | `gs_dos-*.t.plot`, `gs_dos-*.p.raw` |
+| `bond` | Bond order analysis | `gs_bond-*.raw` |
+| `sybd` | Symmetric band structure | `gs_sybd-*.plot` |
+| `optc` | Optical properties (dielectric function) | `gs_optc-*.t.plot` |
+| `pacs` | X-ray absorption (XANES) | `gs_pacs-*.plot` |
+| `field` | Charge density / potential | `gs_field-*.plot` |
+| `force` | Atomic forces | `gs_force-*.dat` |
+| `nlop` | Nonlinear optical properties | `gs_nlop-*.plot` |
+| `sige` | Optical transitions near Fermi level | `gs_sige-*.plot` |
+
+## Parameter Reference
+
+The `OlcaoParameters` data type accepts:
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `kpoints` | list[int] | `[1,1,1]` | K-point mesh [a, b, c] |
+| `kpoints_scf` | list[int] | - | K-points for SCF only |
+| `kpoints_pscf` | list[int] | - | K-points for post-SCF only |
+| `calculation_type` | str | `'scf'` | Type of calculation (see above) |
+| `basis_scf` | str | `'FB'` | SCF basis: `'EB'`, `'FB'`, `'MB'` |
+| `basis_pscf` | str | `'FB'` | Post-SCF basis |
+| `edge` | str | `'gs'` | Edge for excited states: `'gs'`, `'1s'`, `'2p'`, etc. |
+
+## Skeleton File Format
+
+OLCAO uses `.skl` skeleton files to define the structure:
+
+```
+title
+Diamond structure
+end
+cell
+3.56679 3.56679 3.56679 90.0 90.0 90.0
+fract 1
+C 0.00000 0.00000 0.00000
+space 227_a
+supercell 1 1 1
+full
+```
+
+**Format explanation:**
+- `title` / `end`: Structure name/description block
+- `cell`: Lattice parameters (a, b, c in Angstroms; alpha, beta, gamma in degrees)
+- `fract N`: Number of atoms, using fractional coordinates
+- `Element x y z`: Atom positions
+- `space`: Space group (e.g., `227_a` for diamond Fd-3m)
+- `supercell`: Supercell multipliers
+- `full` or `prim`: Use full or primitive cell
+
+## Exit Codes
+
+The parser returns these exit codes:
+
+| Code | Name | Description |
+|------|------|-------------|
+| 0 | Success | Calculation completed successfully |
+| 300 | `ERROR_NO_RETRIEVED_FOLDER` | Retrieved folder not found |
+| 301 | `ERROR_MISSING_OUTPUT_FILE` | Output file not found |
+| 302 | `ERROR_NOT_CONVERGED` | SCF did not converge |
+| 303 | `ERROR_SCF_FAILED` | SCF calculation failed |
+| 310 | `ERROR_MAKEINPUT_FAILED` | makeinput preprocessing failed |
+
+## Documentation
+
+- [AiiDA Documentation](https://aiida.readthedocs.io/)
+- [AiiDA-OLCAO Docs](https://aiida-olcao.readthedocs.io/)
+- [OLCAO Source Code](https://github.com/UMKC-CPG/olcao)
 
 ## Development
 
-```shell
-git clone https://github.com/deepakdeo/AiiDA-OLCAO.git
-cd AiiDA-OLCAO
-pip install --upgrade pip
-pip install -e .[pre-commit,testing]  # install extra dependencies
-pre-commit install  # install pre-commit hooks
-pytest -v  # discover and run all tests
-```
+```bash
+# Run tests
+hatch test
 
-See the [developer guide](https://aiida-olcao.readthedocs.io/en/latest/developer_guide/index.html) for more information.
+# Run tests with coverage
+hatch test --cover
+
+# Check code formatting
+hatch fmt --check
+
+# Build documentation
+hatch run docs:build
+```
 
 ## License
 
 MIT
+
 ## Contact
 
-dd9wn@umkc.edu
+Deepak Kumar Deo - dd9wn@umkc.edu
 
+University of Missouri-Kansas City, Computational Physics Group
 
 [ci-badge]: https://github.com/deepakdeo/AiiDA-OLCAO/actions/workflows/ci.yml/badge.svg?branch=main
 [ci-link]: https://github.com/deepakdeo/AiiDA-OLCAO/actions/workflows/ci.yml
