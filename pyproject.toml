@@ -52,6 +52,9 @@ Source = "https://github.com/deepakdeo/aiida-olcao"
 [project.entry-points."aiida.cmdline.data"]
 "olcao" = "aiida_olcao.cli:olcao"
 
+[project.entry-points."aiida.workflows"]
+"olcao.base" = "aiida_olcao.workflows:OlcaoBaseWorkChain"
+
 [tool.pytest.ini_options]
 # Configuration for [pytest](https://docs.pytest.org)
 python_files = "test_*.py example_*.py"
