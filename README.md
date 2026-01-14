@@ -200,6 +200,54 @@ Options:
 | `nlop` | Nonlinear optical properties | `gs_nlop-*.plot` |
 | `sige` | Optical transitions near Fermi level | `gs_sige-*.plot` |
 
+## WorkChain: Multi-Step Workflows
+
+For running multiple calculation types on the same structure, use the `OlcaoBaseWorkChain`. This workflow automatically chains SCF and post-SCF calculations with proper sequencing.
+
+**Benefits:**
+- **Single submission** - Submit once, run SCF + multiple post-SCF calculations
+- **Automatic sequencing** - SCF runs first, post-SCF only runs if SCF converges
+- **Smart basis selection** - Uses recommended basis sets for each calculation type
+- **Full provenance** - All calculations linked in the AiiDA provenance graph
+
+### WorkChain Example
+
+```python
+from aiida import load_profile
+from aiida.engine import submit
+from aiida.orm import List, SinglefileData, load_code
+from aiida.plugins import WorkflowFactory
+
+load_profile()
+
+# Load the WorkChain
+OlcaoBaseWorkChain = WorkflowFactory('olcao.base')
+
+# Build the workflow
+builder = OlcaoBaseWorkChain.get_builder()
+builder.code = load_code('olcao@hellbender')
+builder.skeleton = SinglefileData(file='diamond.skl')
+builder.kpoints = List([5, 5, 5])
+builder.calculations = List(['dos', 'bond', 'optc'])  # Run all three after SCF
+
+# Submit
+workflow = submit(builder)
+print(f'Submitted workflow: {workflow.pk}')
+```
+
+### WorkChain Outputs
+
+After completion, access results:
+
+```python
+from aiida.orm import load_node
+
+wf = load_node(<workflow_pk>)
+scf_results = wf.outputs.scf_parameters.get_dict()
+dos_results = wf.outputs.post_scf_parameters.dos.get_dict()
+bond_results = wf.outputs.post_scf_parameters.bond.get_dict()
+```
+
 ## Parameter Reference
 
 The `OlcaoParameters` data type accepts:
@@ -252,6 +300,34 @@ The parser returns these exit codes:
 | 302 | `ERROR_NOT_CONVERGED` | SCF did not converge |
 | 303 | `ERROR_SCF_FAILED` | SCF calculation failed |
 | 310 | `ERROR_MAKEINPUT_FAILED` | makeinput preprocessing failed |
+
+## Examples
+
+The `examples/` directory contains ready-to-use scripts:
+
+| Script | Description |
+|--------|-------------|
+| `submit_diamond_dos.py` | Submit a DOS calculation |
+| `submit_diamond_bond.py` | Submit a bond order calculation |
+| `submit_diamond_optc.py` | Submit an optical properties calculation |
+| `submit_diamond_workchain.py` | Submit a multi-step workflow (SCF + DOS + Bond) |
+| `plot_dos.py` | Plot DOS from a completed calculation |
+
+### Running an Example
+
+```bash
+cd examples
+
+# Submit a single calculation
+python submit_diamond_dos.py
+
+# Submit a multi-step workflow
+python submit_diamond_workchain.py
+
+# Plot results from a completed DOS calculation
+python plot_dos.py <calc_pk>
+python plot_dos.py <calc_pk> output.png  # Save to file
+```
 
 ## Documentation
 
