@@ -56,8 +56,8 @@ def merge_outputs(**kwargs) -> orm.Dict:
 
     Parameters
     ----------
-    **kwargs
-        Named Dict nodes to merge.
+    kwargs : dict
+        Named Dict nodes to merge (passed as keyword arguments).
 
     Returns
     -------
@@ -72,7 +72,7 @@ def merge_outputs(**kwargs) -> orm.Dict:
 
 
 class OlcaoBaseWorkChain(WorkChain):
-    """WorkChain to run OLCAO SCF followed by post-SCF calculations.
+    """AiiDA WorkChain to run OLCAO SCF followed by post-SCF calculations.
 
     This workflow provides a convenient way to run multiple OLCAO calculations
     on the same structure. It always starts with an SCF calculation to obtain
@@ -80,19 +80,10 @@ class OlcaoBaseWorkChain(WorkChain):
     bond order, optical properties, etc.).
 
     The workflow handles:
-    - Running SCF first and checking convergence
-    - Running multiple post-SCF calculations with appropriate settings
-    - Collecting all outputs in a structured format
 
-    Example
-    -------
-    >>> builder = OlcaoBaseWorkChain.get_builder()
-    >>> builder.code = load_code('olcao@hellbender')
-    >>> builder.skeleton = SinglefileData(file='diamond.skl')
-    >>> builder.kpoints = orm.List([5, 5, 5])
-    >>> builder.calculations = orm.List(['dos', 'bond', 'optc'])
-    >>> builder.basis_scf = orm.Str('FB')
-    >>> submit(builder)
+    * Running SCF first and checking convergence
+    * Running multiple post-SCF calculations with appropriate settings
+    * Collecting all outputs in a structured format
     """
 
     @classmethod

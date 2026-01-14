@@ -187,6 +187,7 @@ nitpick_ignore = [
     ("py:class", "CalcJobNode"),
     ("py:class", "aiida.engine.processes.calcjobs.calcjob.CalcJob"),
     ("py:class", "aiida.engine.processes.exit_code.ExitCode"),
+    ("py:class", "aiida.engine.processes.workchains.workchain.WorkChain"),
     ("py:class", "aiida.orm.nodes.data.dict.Dict"),
     ("py:class", "aiida.parsers.parser.Parser"),
 ]
