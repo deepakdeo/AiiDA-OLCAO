@@ -1,7 +1,4 @@
 [![Build Status][ci-badge]][ci-link]
-[![Coverage Status][cov-badge]][cov-link]
-[![Docs status][docs-badge]][docs-link]
-[![PyPI version][pypi-badge]][pypi-link]
 
 # AiiDA-OLCAO
 
@@ -332,7 +329,6 @@ python plot_dos.py <calc_pk> output.png  # Save to file
 ## Documentation
 
 - [AiiDA Documentation](https://aiida.readthedocs.io/)
-- [AiiDA-OLCAO Docs](https://aiida-olcao.readthedocs.io/)
 - [OLCAO Source Code](https://github.com/UMKC-CPG/olcao)
 
 ## Development
@@ -363,9 +359,3 @@ University of Missouri-Kansas City, Computational Physics Group
 
 [ci-badge]: https://github.com/deepakdeo/AiiDA-OLCAO/actions/workflows/ci.yml/badge.svg?branch=main
 [ci-link]: https://github.com/deepakdeo/AiiDA-OLCAO/actions/workflows/ci.yml
-[cov-badge]: https://coveralls.io/repos/github/deepakdeo/AiiDA-OLCAO/badge.svg?branch=main
-[cov-link]: https://coveralls.io/github/deepakdeo/AiiDA-OLCAO?branch=main
-[docs-badge]: https://readthedocs.org/projects/aiida-olcao/badge
-[docs-link]: https://aiida-olcao.readthedocs.io/
-[pypi-badge]: https://badge.fury.io/py/AiiDA-OLCAO.svg
-[pypi-link]: https://badge.fury.io/py/AiiDA-OLCAO
