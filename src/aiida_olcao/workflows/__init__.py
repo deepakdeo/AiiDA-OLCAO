@@ -25,9 +25,12 @@ from aiida import orm
 from aiida.common import AttributeDict
 from aiida.engine import ToContext, WorkChain, calcfunction
 from aiida.orm import AbstractCode
+from aiida.plugins import CalculationFactory, DataFactory
 
-from aiida_olcao.calculations import OlcaoCalculation
-from aiida_olcao.data import OlcaoParameters
+# Use factories to load classes with registered entry points
+# This is required for AiiDA to properly store nodes with provenance
+OlcaoCalculation = CalculationFactory("olcao")
+OlcaoParameters = DataFactory("olcao")
 
 # Post-SCF calculation types (all except 'scf')
 POST_SCF_TYPES = ("dos", "bond", "sybd", "optc", "pacs", "field", "force", "nlop", "sige", "loen")
